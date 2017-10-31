@@ -12,10 +12,10 @@
 #include "Headers/yolo_parser.hpp"
 
 int main(int argc, const char * argv[]) {
-    const std::string videoPath = "/Users/PedroFigueiredo/Desktop/TresMinutos.mp4";
-    const std::string srtPath = "/Users/PedroFigueiredo/Desktop/TresMinutos.srt";
-    const std::string yoloOut = "/Users/PedroFigueiredo/Desktop/Yolo.out";
-    const std::string output = "/Users/PedroFigueiredo/Desktop/";
+    const std::string videoPath = "/Users/PedroFigueiredo/Desktop/Clarice/clarice-recortes.mp4";
+    const std::string srtPath = "/Users/PedroFigueiredo/Desktop/Clarice/clarice.srt";
+    const std::string yoloOut = "/Users/PedroFigueiredo/Desktop/Clarice/Yolo.out";
+    const std::string output = "/Users/PedroFigueiredo/Desktop/Clarice/Out.srt";
     PostProcessor* p = new PostProcessor();
     
     p->buildAd_(new YoloParser(yoloOut), new SrtGaps(videoPath,srtPath), output);

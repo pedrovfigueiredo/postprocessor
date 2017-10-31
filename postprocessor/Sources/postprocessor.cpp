@@ -9,7 +9,7 @@
 #include "../Headers/postprocessor.h"
 
 bool PostProcessor::buildAd_(const NetworkParser* parser, const GapIdentifier* identifier, const std::string& output){
-    const int framesPerSecond = 25, speechDuration = 2, minAccuracy = 60, minCount = 10;
+    const int framesPerSecond = 25, speechDuration = 2, minAccuracy = 60, minCount = 10, repetitionTime = 10;
     std::vector<Gap*> gaps;
     NetworkParser::objects_map objects;
     // Contains objects used in speechs, quantified by frequency.
@@ -18,12 +18,16 @@ bool PostProcessor::buildAd_(const NetworkParser* parser, const GapIdentifier* i
     
     
     // Computing gaps
-    if (!identifier->computeGaps_(gaps, speechDuration))
+    if (!identifier->computeGaps_(gaps, speechDuration)){
+        std::clog << " [POSTPROCESSOR] Failed to open original subtitle.\n";
         return false;
+    }
     
     // Parsing yolo output
-    if (!parser->parseObjects_(objects))
+    if (!parser->parseObjects_(objects)){
+        std::clog << " [POSTPROCESSOR] Failed to open yolo output.\n";
         return false;
+    }
     
     // Erasing unused objects
     eraseUnusedObjects_(objects, gaps, framesPerSecond);
@@ -35,11 +39,13 @@ bool PostProcessor::buildAd_(const NetworkParser* parser, const GapIdentifier* i
     buildSpeechObjectArray_(speechObjectsArray, objects, gaps.begin(), framesPerSecond, speechDuration, minAccuracy);
     
     // Building speeches vector
-    buildSpeeches_(speeches, speechObjectsArray, gaps, speechDuration, minCount);
+    buildSpeeches_(speeches, speechObjectsArray, gaps, speechDuration, minCount, repetitionTime);
     
     // Writing Speeches to srtFile
-    if (!writeSpeeches_(speeches, output))
+    if (!writeSpeeches_(speeches, output)){
+        std::clog << " [POSTPROCESSOR] Failed to open output AD subtitle.\n";
         return false;
+    }
     
     // Deallocating dynamically allocated memory
     deallocate_(objects, speechObjectsArray, speeches, gaps);
@@ -48,7 +54,7 @@ bool PostProcessor::buildAd_(const NetworkParser* parser, const GapIdentifier* i
 }
 
 bool PostProcessor::writeSpeeches_(std::vector<Speech*>& speeches, const std::string& output){
-    std::fstream file(output);
+    std::fstream file(output, std::fstream::out);
     
     if (file.is_open())
         for (auto speech : speeches)
@@ -60,7 +66,7 @@ bool PostProcessor::writeSpeeches_(std::vector<Speech*>& speeches, const std::st
     return true;
 }
 
-void PostProcessor::buildSpeeches_(std::vector<Speech*>& speeches, Speech::speech_objects_array& objArray, std::vector<Gap*>& gaps, const int pace, const int minCount){
+void PostProcessor::buildSpeeches_(std::vector<Speech*>& speeches, Speech::speech_objects_array& objArray, std::vector<Gap*>& gaps, const int pace, const int minCount, const int repetitionTime){
     int count = 0;
     Speech* currSpeech;
     
@@ -98,10 +104,12 @@ void PostProcessor::buildSpeeches_(std::vector<Speech*>& speeches, Speech::speec
          }
     
     // Erasing speech duplicates, if neighbours
-    for (auto it = speeches.begin() + 1; it != speeches.end(); it++)
-        // If Speeches generate the same text AND there is a gap in between whose duration lasts no longer than 10 seconds, the duplicate gets removed
-        if (*(*(it-1)) == *(*it) && (*it)->begin_->toSeconds_() - (*(it-1))->end_->toSeconds_() <= 10)
-            speeches.erase(it--);
+    for (auto it = speeches.begin() + 1; it != speeches.end();)
+        // If Speeches generate the same text AND there is a gap in between whose duration lasts no longer than repetitionTime seconds, the duplicate gets removed
+        if (*(*(it-1)) == *(*it) && ((*it)->begin_->toSeconds_() - (*(it-1))->end_->toSeconds_()) <= repetitionTime)
+            it = speeches.erase(it);
+        else
+            it++;
     
     // Setting the id for all speeches
     int id = 0;
@@ -156,14 +164,16 @@ void PostProcessor::eraseUnusedObjects_(NetworkParser::objects_map& objects, con
     for (auto gap : gaps)
         validIntervals.push_back({gap->getBegin_().toSeconds_() * framesPerSecond, gap->getEnd_().toSeconds_() * framesPerSecond});
     
-    for (auto it = objects.begin(); it != objects.end(); it++){
+    for (auto it = objects.begin(); it != objects.end();){
         for (auto interval : validIntervals)
             if (it->first >= interval.first && it->first <= interval.second){
                 valid = true;
                 break;
             }
         if (!valid)
-            objects.erase(it--);
+            it = objects.erase(it);
+        else
+            it++;
         valid = false;
     }
 }

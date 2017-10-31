@@ -36,7 +36,7 @@ public:
 private:
     bool writeSpeeches_(std::vector<Speech*>& speeches, const std::string& output);
     
-    void buildSpeeches_(std::vector<Speech*>& speeches, Speech::speech_objects_array& objArray, std::vector<Gap*>& gaps, const int pace, const int minCount);
+    void buildSpeeches_(std::vector<Speech*>& speeches, Speech::speech_objects_array& objArray, std::vector<Gap*>& gaps, const int pace, const int minCount, const int repetitionTime);
     
     void buildSpeechObjectArray_(Speech::speech_objects_array& objArray, NetworkParser::objects_map& objects , std::vector<Gap*>::iterator currGap, const int framesPerSecond, const int speechDuration, const int minAccuracy);
     

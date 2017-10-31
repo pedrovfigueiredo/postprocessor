@@ -11,6 +11,8 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
+#include <random>
 
 #include "../../gap_identifier/Headers/timestamp.hpp"
 #include "object.hpp"

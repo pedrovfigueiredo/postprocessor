@@ -35,9 +35,63 @@ std::ostream& operator<< (std::ostream& stream, const Speech& v){
     return stream;
 }
 
-// TO DO
 const std::string Speech::getTextFromObjects_() const{
-    return std::string();
+    std::stringstream phrase;
+    int count = 0;
+    std::random_device rd_;
+    std::mt19937 rng(rd_());
+    std::uniform_int_distribution<int> uni(0,2);
+    auto random = uni(rng);
+    
+    switch (random) {
+        // Cena mostra ...
+        case 0:
+            phrase <<  "Cena mostra ";
+            for (auto it = objects_.begin(); it!=objects_.end();it++) {
+                phrase << (*it).first->accuracyOrCount_ << " " << (*it).first->name_;
+                if (it + 1 != objects_.end() - 1 && it + 1 != objects_.end())
+                    phrase << ", ";
+                else if (it + 1 != objects_.end())
+                    phrase << " e ";
+            }
+            phrase << ".";
+            break;
+        
+        // Há x,y e z na cena.
+        case 1:
+            for (auto obj : objects_)
+                count += obj.first->accuracyOrCount_;
+            phrase << "Há ";
+            for (auto it = objects_.begin(); it!=objects_.end();it++) {
+                phrase << (*it).first->accuracyOrCount_ << " " << (*it).first->name_;
+                if (it + 1 != objects_.end() - 1 && it + 1 != objects_.end())
+                    phrase << ", ";
+                else if (it + 1 != objects_.end())
+                    phrase << " e ";
+            }
+            phrase << " na cena.";
+            break;
+            
+        // São exibidos / É exibido x,y e z na cena.
+        case 2:
+            for (auto obj : objects_)
+                count += obj.first->accuracyOrCount_;
+            if (count > 1)
+                phrase << "São exibidos ";
+            else
+                phrase << "É exibido ";
+            for (auto it = objects_.begin(); it!=objects_.end();it++) {
+                phrase << (*it).first->accuracyOrCount_ << " " << (*it).first->name_;
+                if (it + 1 != objects_.end() - 1 && it + 1 != objects_.end())
+                    phrase << ", ";
+                else if (it + 1 != objects_.end())
+                    phrase << " e ";
+            }
+            phrase << " na cena.";
+            break;
+    }
+    
+    return phrase.str();
 }
 
 // Considers speechs equal if they have the same types of objects, as they generate the same text

@@ -18,13 +18,12 @@ SrtGaps::~SrtGaps(){}
 bool SrtGaps::computeGaps_(std::vector<Gap*>& gaps, int minimumDuration) const{
     
     std::string line, times;
-    Timestamp* speechBegin = nullptr, *speechEnd = nullptr, *gapBegin = nullptr;
+    Timestamp* speechBegin = nullptr, *speechEnd = nullptr, *gapBegin = new Timestamp();
     int id = 0;
     std::ifstream srtfile(this->srtPath_);
     
     if (srtfile.is_open())
     {
-        gapBegin = new Timestamp();
         while ( getline (srtfile,line) )
         {
             if ( ( (line.size() == 29 || line.size() == 30) && line[0] >= '0' && line[0] <= '9') ) {
